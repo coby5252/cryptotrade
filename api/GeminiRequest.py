@@ -22,6 +22,7 @@ class GeminiRequest(object):
 
     def _nonce(self):
         return int(time.time()*1000)
+        
 
     def _sign(self, data):
         j = json.dumps(data)
