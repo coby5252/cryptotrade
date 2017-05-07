@@ -1,0 +1,5 @@
+##Ignore Config File##
+*.config
+
+scratch.py
+__pycache__/
