@@ -1,3 +1,4 @@
+import os
 import requests
 import time
 import configparser
@@ -13,8 +14,9 @@ class GeminiRequest(object):
     """
 
     def __init__(self):
+        config_file = os.path.join(os.path.dirname(__file__), 'settings.config')
         config = configparser.ConfigParser()
-        config.read('../settings.config')
+        config.read(config_file)
         self.url = config['API_SETTINGS']['url']
         self.api_key = config['API_SETTINGS']['api_key']
         self.api_secret = config['API_SETTINGS']['api_secret']
@@ -39,13 +41,19 @@ class GeminiRequest(object):
     def getLastPrice(self, coin='ethusd'):
         path = '/v1/pubticker/%s'%(coin)
         response = requests.get(self.url + path)
-        return response.json()['last']
+        return float(response.json()['last'])
 
 
     def getPriceSpread(self, coin='ethusd'):
         path = '/v1/pubticker/%s'%(coin)
         response = requests.get(self.url + path)
-        return (response.json()['bid'], response.json()['ask'])
+        return (float(response.json()['bid']), float(response.json()['ask']))
+
+
+    def getVolume(self, coin='ethusd'):
+        path = '/v1/pubticker/%s'%(coin)
+        response = requests.get(self.url + path)
+        return float(response.json()['volume']['USD'])
 
 
     def checkBalances(self):
@@ -65,3 +73,105 @@ class GeminiRequest(object):
             'BTC': {'Available': btc[0], 'Withdrawable': btc[1], 'Total': btc[2]}
         }
         return ret
+
+
+    def buy(self, amount, price, order_type = 'exchange limit', symbol = 'ethusd', exchange = 'gemini'):
+        path = '/v1/order/new'
+        data = {
+            "request": "/v1/order/new",
+            "nonce": self._nonce(),
+            "symbol": symbol,
+            "amount": amount,
+            "price": price,
+            "exchange": exchange,
+            "side": "buy",
+            "type": order_type
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        try:
+            response['order_id']
+        except:
+            return response['message']
+
+        return response
+
+
+    def sell(self, amount, price, order_type = 'exchange limit', symbol = 'ethusd', exchange = 'gemini'):
+        path = '/v1/order/new'
+        data = {
+            'request': '/v1/order/new',
+            'nonce': self._nonce(),
+            'symbol': symbol,
+            'amount': amount,
+            'price': price,
+            'exchange': exchange,
+            'side': 'sell',
+            'type': order_type
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        try:
+            response['order_id']
+        except:
+            return response['message']
+
+        return response
+
+
+    def order_status(self, order_id):
+        path = '/v1/order/status'
+        data = {
+            "request": "/v1/order/status",
+            "nonce": self._nonce(),
+            "order_id": order_id
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        return response
+
+
+    def active_orders(self):
+        path = '/v1/orders'
+        data = {
+            "request": "/v1/orders",
+            "nonce": self._nonce()
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        return response
+
+
+    def cancel_order(self, order_id):
+        path = '/v1/order/cancel'
+        data = {
+            "request": "/v1/order/cancel",
+            "nonce": self._nonce(),
+            "order_id": order_id
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        return response
+
+
+    def cancel_all_orders(self):
+        path = '/v1/order/cancel/session'
+        data = {
+            "request": "/v1/order/cancel/session",
+            "nonce": self._nonce()
+        }
+
+        headers = self._sign(data)
+        response = requests.post(self.url + path, headers = headers).json()
+
+        return response
