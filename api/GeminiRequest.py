@@ -81,8 +81,8 @@ class GeminiRequest(object):
             "request": "/v1/order/new",
             "nonce": self._nonce(),
             "symbol": symbol,
-            "amount": amount,
-            "price": price,
+            "amount": round(amount, 4),
+            "price": round(price, 2),
             "exchange": exchange,
             "side": "buy",
             "type": order_type
@@ -105,8 +105,8 @@ class GeminiRequest(object):
             'request': '/v1/order/new',
             'nonce': self._nonce(),
             'symbol': symbol,
-            'amount': amount,
-            'price': price,
+            'amount': round(amount, 4),
+            'price': round(price, 2),
             'exchange': exchange,
             'side': 'sell',
             'type': order_type

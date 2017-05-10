@@ -1,5 +1,8 @@
 ##Ignore Config File##
 *.config
 
+##Ignore database files
+*.db
+
 scratch.py
 __pycache__/
